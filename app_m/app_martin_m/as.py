@@ -1,49 +1,66 @@
 import flet as ft
 
 def main(page: ft.Page):
-    page.title = "Animación de expansión de cuadrados"
-    
-    # Definimos las propiedades de los cuadrados
-    expanded_height = 200  # Altura expandida del cuadrado superior
-    collapsed_height = 100  # Altura colapsada del cuadrado superior
-    square_color = ft.colors.BLUE  # Color del cuadrado superior
-    lower_square_color = ft.colors.GREEN  # Color del cuadrado inferior
 
-    # Creamos los cuadrados con sus alturas iniciales
-    upper_square = ft.Container(
-        width=300,
-        height=collapsed_height,
-        bgcolor=square_color,
-        alignment=ft.alignment.center,
-        animate_size=500  # Animación de tamaño
-    )
+    data = [
+        ["Juan", "25", "Buenos Aires"],
+        ["María", "30", "Córdoba"],
+        ["Pedro", "22", "Rosario"]
+    ]
 
-    lower_square = ft.Container(
-        width=300,
-        height=100,
-        bgcolor=lower_square_color,
-        alignment=ft.alignment.center,
-    )
+    expanded_row = None
 
-    # Función que se ejecuta al hacer clic en el cuadrado superior
-    def expand_upper_square(e):
-        new_height = expanded_height if upper_square.height == collapsed_height else collapsed_height
-        upper_square.height = new_height
-        upper_square.update()
+    def row_clicked(e, index):
+        nonlocal expanded_row
+        if expanded_row == index:
+            expanded_row = None  # Colapsar si se hace clic de nuevo
+        else:
+            expanded_row = index  # Expandir la fila clickeada
+        update_table()
 
-    # Añadimos el evento de clic al cuadrado superior
-    upper_square.on_click = expand_upper_square
-
-    # Agregamos los cuadrados al layout de la página
-    page.add(
-        ft.Column(
-            controls=[
-                upper_square,
-                lower_square
+    def create_row(row, index):
+        return ft.DataRow(
+            cells=[
+                ft.DataCell(ft.Text(row[0])),
+                ft.DataCell(ft.Text(row[1])),
+                ft.DataCell(ft.Text(row[2])),
             ],
-            alignment=ft.MainAxisAlignment.start,
+            on_select_changed=lambda e: row_clicked(e, index),
         )
+
+    def create_expanded_row():
+        return ft.DataRow(
+            cells=[
+                ft.DataCell(ft.Container(
+                    content=ft.Text("Hola"),
+                    padding=10,
+                    bgcolor=ft.colors.RED,
+                )),
+                ft.DataCell(ft.Text("")),
+                ft.DataCell(ft.Text(""))
+            ]
+        )
+
+    def update_table():
+        rows = []
+        for index, row in enumerate(data):
+            rows.append(create_row(row, index))
+            if expanded_row == index:
+                rows.append(create_expanded_row())
+        dt.rows = rows
+        page.update()
+
+    dt = ft.DataTable(
+        columns=[
+            ft.DataColumn(label=ft.Text("Nombre")),
+            ft.DataColumn(label=ft.Text("Edad")),
+            ft.DataColumn(label=ft.Text("Ciudad")),
+        ],
+        rows=[],  # Inicialmente vacío, se llena con update_table
+        border_radius=5,
     )
 
-# Ejecutamos la aplicación Flet
+    page.add(dt)
+    update_table()  # Llenar la tabla inicialmente
+
 ft.app(target=main)
